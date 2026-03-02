@@ -18,6 +18,11 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
+        img {
+            width: 120px;
+            margin-bottom: 15px;
+        }
+
         input {
             padding: 10px;
             width: 80%;
@@ -30,6 +35,7 @@
             color: white;
             border: none;
             cursor: pointer;
+            border-radius: 5px;
         }
 
         button:hover {
@@ -52,6 +58,9 @@
 
 <div class="box">
 
+    <!-- LOGO -->
+    <img src="logo.png" alt="Institution Logo">
+
     <h2>Block One Attendance Portal</h2>
 
     <input type="text" id="usnInput" placeholder="Enter USN">
@@ -73,37 +82,39 @@ async function searchAttendance() {
         return;
     }
 
-    const response = await fetch("attendance.json");
-    const data = await response.json();
+    try {
+        const response = await fetch("attendance.json");
+        const data = await response.json();
 
-    // Find student by USN column
-    const student = data.find(row =>
-        row.USN && row.USN.toString().toUpperCase() === usn
-    );
+        const student = data.find(row =>
+            row.USN && row.USN.toString().toUpperCase() === usn
+        );
 
-    if (!student) {
-        resultDiv.innerHTML = "<p class='error'>USN Not Found</p>";
-        return;
+        if (!student) {
+            resultDiv.innerHTML = "<p class='error'>USN Not Found</p>";
+            return;
+        }
+
+        let output = "";
+
+        for (let key in student) {
+
+            if (student[key] === "" || student[key] === null) continue;
+            if (key.toLowerCase().includes("sl") || key.toLowerCase().includes("index")) continue;
+
+            output += `
+                <div class="row">
+                    <strong>${key}:</strong> ${student[key]}
+                </div>
+            `;
+        }
+
+        resultDiv.innerHTML = output;
+
+    } catch (error) {
+        resultDiv.innerHTML = "<p class='error'>Error loading attendance data</p>";
+        console.error(error);
     }
-
-    let output = "";
-
-    for (let key in student) {
-
-        // Skip empty values
-        if (student[key] === "" || student[key] === null) continue;
-
-        // Skip internal columns if needed
-        if (key.toLowerCase().includes("sl") || key.toLowerCase().includes("index")) continue;
-
-        output += `
-            <div class="row">
-                <strong>${key}:</strong> ${student[key]}
-            </div>
-        `;
-    }
-
-    resultDiv.innerHTML = output;
 }
 </script>
 
