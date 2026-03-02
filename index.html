@@ -1,54 +1,67 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Block One Attendance Portal</title>
+    <meta charset="UTF-8">
+    <title>Student Attendance Portal – Block 1</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
+            background: #f4f6f9;
             margin: 0;
             padding: 0;
-            background-color: #f4f6f9;
         }
 
         .container {
-            margin-top: 50px;
-            background: white;
+            width: 420px;
+            margin: 80px auto;
+            background: #ffffff;
             padding: 30px;
-            width: 400px;
-            margin-left: auto;
-            margin-right: auto;
             border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            text-align: center;
         }
 
         img {
-            width: 120px;
-            margin-bottom: 20px;
-        }
-
-        input {
-            padding: 10px;
-            width: 80%;
+            width: 140px;
             margin-bottom: 15px;
         }
 
+        h2 {
+            margin-bottom: 20px;
+            color: #003366;
+        }
+
+        input {
+            width: 85%;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
         button {
-            padding: 10px 20px;
-            background-color: #003366;
+            padding: 10px 25px;
+            font-size: 16px;
+            background: #003366;
             color: white;
             border: none;
-            cursor: pointer;
             border-radius: 5px;
+            cursor: pointer;
         }
 
         button:hover {
-            background-color: #0055aa;
+            background: #0055aa;
         }
 
         #result {
-            margin-top: 20px;
+            margin-top: 25px;
             text-align: left;
+            font-size: 15px;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
         }
     </style>
 </head>
@@ -56,12 +69,12 @@
 
 <div class="container">
 
-    <!-- Logo -->
-    <img src="https://drive.google.com/uc?export=view&id=1fpYzjz3noH_-xqMv8MAb2ebL-JooYw5w" alt="Institution Logo">
+    <!-- LOGO (upload logo.png in GitHub repo) -->
+    <img src="logo.png" alt="Institution Logo">
 
-    <h3>Block One Attendance</h3>
+    <h2>Block–1 Attendance</h2>
 
-    <input type="text" id="usnInput" placeholder="Enter Your USN">
+    <input type="text" id="usnInput" placeholder="Enter USN">
     <br>
     <button onclick="searchAttendance()">Search</button>
 
@@ -73,22 +86,36 @@
 async function searchAttendance() {
 
     const usn = document.getElementById("usnInput").value.trim().toUpperCase();
-    const response = await fetch("attendance.json");
-    const data = await response.json();
+    const resultDiv = document.getElementById("result");
 
-    const student = data.find(s => s.USN.toUpperCase() === usn);
+    if (usn === "") {
+        resultDiv.innerHTML = "<p class='error'>Please enter USN</p>";
+        return;
+    }
 
-    if(student){
-        document.getElementById("result").innerHTML = `
-            <p><strong>Name:</strong> ${student.Name}</p>
-            <p><strong>Semester:</strong> ${student.Sem}</p>
-            <p><strong>Total Classes:</strong> ${student.Total}</p>
-            <p><strong>Present:</strong> ${student.Present}</p>
-            <p><strong>Attendance %:</strong> ${student.Percentage}</p>
-        `;
-    } else {
-        document.getElementById("result").innerHTML =
-            "<p style='color:red;'>USN Not Found</p>";
+    try {
+        const response = await fetch("attendance.json");
+        const data = await response.json();
+
+        const student = data.find(s =>
+            s["USN"] && s["USN"].toString().toUpperCase() === usn
+        );
+
+        if (student) {
+            resultDiv.innerHTML = `
+                <p><strong>Name:</strong> ${student["NAME"] ?? "-"}</p>
+                <p><strong>Semester:</strong> ${student["SEM"] ?? "-"}</p>
+                <p><strong>Total Classes:</strong> ${student["TOTAL HOURS"] ?? "-"}</p>
+                <p><strong>Present:</strong> ${student["HOURS ATTENDED"] ?? "-"}</p>
+                <p><strong>Attendance %:</strong> ${student["ATTENDANCE %"] ?? "-"}</p>
+            `;
+        } else {
+            resultDiv.innerHTML = "<p class='error'>USN Not Found</p>";
+        }
+
+    } catch (error) {
+        resultDiv.innerHTML = "<p class='error'>Error loading attendance data</p>";
+        console.error(error);
     }
 }
 </script>
