@@ -2,47 +2,47 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Student Attendance Portal – Block 1</title>
+    <title>Block One Attendance Portal</title>
 
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: #f4f6f9;
+            background-color: #f2f4f8;
             margin: 0;
             padding: 0;
         }
 
         .container {
-            width: 420px;
-            margin: 80px auto;
+            width: 500px;
+            margin: 70px auto;
             background: #ffffff;
             padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             text-align: center;
         }
 
         img {
-            width: 140px;
+            width: 120px;
             margin-bottom: 15px;
         }
 
         h2 {
-            margin-bottom: 20px;
             color: #003366;
+            margin-bottom: 20px;
         }
 
         input {
-            width: 85%;
+            width: 90%;
             padding: 10px;
-            margin-bottom: 15px;
             font-size: 16px;
+            margin-bottom: 15px;
         }
 
         button {
             padding: 10px 25px;
             font-size: 16px;
-            background: #003366;
+            background-color: #003366;
             color: white;
             border: none;
             border-radius: 5px;
@@ -50,31 +50,37 @@
         }
 
         button:hover {
-            background: #0055aa;
+            background-color: #0055aa;
         }
 
         #result {
-            margin-top: 25px;
+            margin-top: 20px;
             text-align: left;
-            font-size: 15px;
+            font-size: 14px;
         }
 
         .error {
             color: red;
             text-align: center;
         }
+
+        .row {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
     </style>
 </head>
+
 <body>
 
 <div class="container">
 
-    <!-- LOGO (upload logo.png in GitHub repo) -->
+    <!-- Recommended: Upload logo.png to GitHub -->
     <img src="logo.png" alt="Institution Logo">
 
-    <h2>Block–1 Attendance</h2>
+    <h2>Block One Attendance</h2>
 
-    <input type="text" id="usnInput" placeholder="Enter USN">
+    <input type="text" id="usnInput" placeholder="Enter Your USN">
     <br>
     <button onclick="searchAttendance()">Search</button>
 
@@ -88,7 +94,7 @@ async function searchAttendance() {
     const usn = document.getElementById("usnInput").value.trim().toUpperCase();
     const resultDiv = document.getElementById("result");
 
-    if (usn === "") {
+    if (!usn) {
         resultDiv.innerHTML = "<p class='error'>Please enter USN</p>";
         return;
     }
@@ -97,21 +103,30 @@ async function searchAttendance() {
         const response = await fetch("attendance.json");
         const data = await response.json();
 
-        const student = data.find(s =>
-            s["USN"] && s["USN"].toString().toUpperCase() === usn
+        // Automatically detect USN column
+        const student = data.find(row =>
+            Object.values(row).some(value =>
+                value && value.toString().toUpperCase() === usn
+            )
         );
 
-        if (student) {
-            resultDiv.innerHTML = `
-                <p><strong>Name:</strong> ${student["NAME"] ?? "-"}</p>
-                <p><strong>Semester:</strong> ${student["SEM"] ?? "-"}</p>
-                <p><strong>Total Classes:</strong> ${student["TOTAL HOURS"] ?? "-"}</p>
-                <p><strong>Present:</strong> ${student["HOURS ATTENDED"] ?? "-"}</p>
-                <p><strong>Attendance %:</strong> ${student["ATTENDANCE %"] ?? "-"}</p>
-            `;
-        } else {
+        if (!student) {
             resultDiv.innerHTML = "<p class='error'>USN Not Found</p>";
+            return;
         }
+
+        let output = "";
+
+        // Dynamically display all fields for that student
+        for (let key in student) {
+            output += `
+                <div class="row">
+                    <strong>${key}:</strong> ${student[key]}
+                </div>
+            `;
+        }
+
+        resultDiv.innerHTML = output;
 
     } catch (error) {
         resultDiv.innerHTML = "<p class='error'>Error loading attendance data</p>";
